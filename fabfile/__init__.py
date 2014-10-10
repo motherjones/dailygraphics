@@ -12,7 +12,6 @@ import app_config
 from etc.gdocs import GoogleDoc
 
 # Other fabfiles
-import assets
 import utils
 
 """
@@ -118,24 +117,18 @@ def _deploy_to_s3(path='.gzip'):
 
     sync = 'aws s3 sync %s %s --acl "public-read" ' + exclude_flags + ' --cache-control "max-age=5" --region "us-east-1"'
     sync_gzip = 'aws s3 sync %s %s --acl "public-read" --content-encoding "gzip" --exclude "*" ' + include_flags + ' --cache-control "max-age=5" --region "us-east-1"'
-    sync_assets = 'aws s3 sync %s %s --acl "public-read" --cache-control "max-age=86400" --region "us-east-1"'
 
     for bucket in app_config.S3_BUCKETS:
-        local(sync % (path, 's3://%s/%s/%s' % (
+        local(sync % (path, 's3://%s/interactives/projects/%s/%s' % (
             bucket,
             app_config.PROJECT_SLUG,
             path.split('.gzip/')[1]
         )))
 
-        local(sync_gzip % (path, 's3://%s/%s/%s' % (
+        local(sync_gzip % (path, 's3://%s/interactives/projects/%s/%s' % (
             bucket,
             app_config.PROJECT_SLUG,
             path.split('.gzip/')[1]
-        )))
-
-        local(sync_assets % ('www/assets/', 's3://%s/%s/assets/' % (
-            bucket,
-            app_config.PROJECT_SLUG
         )))
 
 def _gzip(in_path='www', out_path='.gzip'):
@@ -213,25 +206,3 @@ def add_table(slug):
     graphic_path = '%s/%s' % (app_config.GRAPHICS_PATH, slug)
     local('cp -r new_table %s' % graphic_path)
     download_copy(slug)
-
-"""
-Destruction
-
-Changes to destruction require setup/deploy to a test host in order to test.
-Destruction should remove all files related to the project from both a remote
-host and S3.
-"""
-@task
-def shiva_the_destroyer():
-    """
-    Deletes the app from s3
-    """
-    require('settings', provided_by=[production, staging])
-
-    utils.confirm("You are about to destroy everything deployed to %s for this project.\nDo you know what you're doing?" % app_config.DEPLOYMENT_TARGET)
-
-    with settings(warn_only=True):
-        sync = 'aws s3 rm %s --recursive --region "us-east-1"'
-
-        for bucket in app_config.S3_BUCKETS:
-            local(sync % ('s3://%s/%s/' % (bucket, app_config.PROJECT_SLUG)))
