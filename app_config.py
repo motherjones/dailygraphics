@@ -29,7 +29,7 @@ DEPLOYMENT
 """
 PRODUCTION_S3_BUCKETS = ['mjassets.s3.amazonaws.com'] 
 STAGING_S3_BUCKETS = ['mjassets.s3.amazonaws.com']
-# ASSETS_S3_BUCKET = 'assets.apps.npr.org'
+ASSETS_S3_BUCKET = 'assets.apps.npr.org'
 
 # These variables will be set at runtime. See configure_targets() below
 S3_BUCKETS = []
